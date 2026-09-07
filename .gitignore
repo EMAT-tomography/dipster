@@ -1,0 +1,4 @@
+# Ignore local datasets
+/data/
+/dipster_bare.egg-info/
+/notebooks_private/
