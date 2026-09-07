@@ -23,10 +23,7 @@ We advise starting with `Train.ipynb` to confirm the code runs on your computer 
 
 In addition, the `Moving_window_tomo.ipynb` notebook includes routines for moving window TV, EM and SIRT reconstructions, try it yourself!
 
-## 3. License 
-This code is licensed under GNU general public license version 3.0.
-
-## 4. Citations and acknowledgments
+## 3. Citations and acknowledgments
 See the preprint at: https://arxiv.org/abs/2603.29462
 
 DIP-STER draws inspiration from many great works including but not limited to:
@@ -36,7 +33,7 @@ DIP-STER draws inspiration from many great works including but not limited to:
 
 Thank you!
 
-## 5. Contributors
+## 4. Contributors
 Timothy Craig - tim.craig@uantwerpen.be\
 Adrien Moncomble - adrien.moncomble@uantwerpen.be\
 Robin Girod - robin.girod@uantwerpen.be
