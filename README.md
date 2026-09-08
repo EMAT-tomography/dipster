@@ -1,5 +1,5 @@
 # DIP-STER
-Deep Image Priors for Space Time Environment Reconstruction (DIP-STER) is a neural network that uses Deep Image Priors for machine learning using an architecture involving manifold learning and convolution nueral networks in order to determine the resolve a 4D(3D + time) series of electron tomography data during _in situ_ experiments.
+Deep Image Priors for Space Time Environment Reconstruction (DIP-STER) is a neural network framework that predicts a 4D (3D + time) series of electron tomography reconstructions from a single, continuous tilt series of a dynamically evolving specimen such as obtained during _in situ_ experiments or from beam damage.
 
 <p align="center">
     <img src="Images/Star.gif" width="128">
@@ -7,7 +7,7 @@ Deep Image Priors for Space Time Environment Reconstruction (DIP-STER) is a neur
     <img src="Images/Slice.gif" width="128">
 </p>
 
-DIP-STER works by using an implicit neural representation of a volume time series that *implicitely* regularizes for smoothness in time and along the **x** and **z** directions (assuming rotation around **y**). Coupled with a GRS-style tilt scheme that involves large tilt steps, these priors promote decoupling changes in the tilt series that originate from tilting from the actual sample dynamics.  
+DIP-STER works by using an implicit neural representation of the volume time series that *implicitely* regularizes for smoothness in time and along the **x** and **z** directions (assuming rotation around **y**). Coupled with a GRS-style tilt scheme that involves large tilt steps, these priors promote decoupling changes in the tilt series that originate from tilting from the actual sample dynamics.  
 
 <p align="center">
     <img src="Images/Workflow.png" width="500">
