@@ -1,22 +1,24 @@
 # DIP-STER
 Deep Image Priors for Space Time Environment Reconstruction (DIP-STER) is a neural network that uses Deep Image Priors for machine learning using an architecture involving manifold learning and convolution nueral networks in order to determine the resolve a 4D(3D + time) series of electron tomography data during _in situ_ experiments.
 
-<center>
-
-![Star.gif](Images/Star.gif)
-![Cube.gif](Images/Cube.gif)
-![Slice.gif](Images/Slice.gif)
-<span style="color:gold"> **Au** </span> <span style="color:gray"> **Ag** </span>
-
-</center>
+<p align="center">
+    <img src="Images/Star.gif" width="128">
+    <img src="Images/Cube.gif" width="128">
+    <img src="Images/Slice.gif" width="128">
+    <span style="color:gold; "><b> Au </span> <span style="color:gray"> Ag </span></b>
+</p>
 
 DIP-STER works by using an implicit neural representation of a volume time series that *implicitely* regularizes for smoothness in time and along the **x** and **z** directions (assuming rotation around **y**). Coupled with a GRS-style tilt scheme that involves large tilt steps, these priors promote decoupling changes in the tilt series that originate from tilting from the actual sample dynamics.  
 
-![Workflow.png](Images/Workflow.png)
+<p align="center">
+    <img src="Images/Workflow.png" width="500">
+</p>
 
 The network takes in a 3-coordinates $(t_i, y_k, \theta_i)$ manifold, encodes it it via a FC net into a latent vector, and finally decodes it into a 2D orthoslice of the volume-time series. During training, this orthoslice is reprojected at angle $\theta_i$ and compared with the experimental (1D) projection at time $t_i$ and position $y_k$. 
 
-![DIPSTER.png](Images/DIPSTER.png)
+<p align="center">
+    <img src="Images/DIPSTER.png" width="500">
+</p>
 
 ## 1. Installation
 
