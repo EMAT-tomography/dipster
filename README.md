@@ -1,5 +1,5 @@
 # DIP-STER
-Deep Image Priors for Space Time Environment Reconstruction (DIP-STER) is a neural network framework that predicts a 4D (3D + time) series of electron tomography reconstructions from a single, continuous tilt series of a dynamically evolving specimen such as obtained during _in situ_ experiments or from beam damage.
+[Deep Image Priors for Space Time Environment Reconstruction (DIP-STER)](https://arxiv.org/abs/2603.29462) is a neural network framework that predicts a 4D (3D + time) series of electron tomography reconstructions from a single, continuous tilt series of a dynamically evolving specimen such as obtained during _in situ_ experiments or from beam damage.
 
 <p align="center">
     <img src="Images/Star.gif" width="128">
@@ -43,14 +43,28 @@ We advise starting with `Train.ipynb` to confirm the code runs on your computer 
 In addition, the `Moving_window_tomo.ipynb` notebook includes routines for moving window TV, EM and SIRT reconstructions, try it yourself!
 
 ## 3. Citations and acknowledgments
-See the preprint at: https://arxiv.org/abs/2603.29462
+If using DIP-STER or part of the code herein, please cite:  
 
+> Craig, T. M.; Moncomble, A.; Kadu, A. A.; Vinnacombe-Willson, G. A.; Liz-Marzán, L. M.; Girod, R.; Bals, S. Continuous Three-Dimensional Imaging of Nanoscale Dynamics by in Situ Electron Tomography. **2026**. Preprint at https://doi.org/10.48550/arXiv.2603.29462
+
+For functions defining ET-adapted GRS tilt schemes and other options for continuous tilting in TEM see:
+
+> Craig, T. M.; Girod, R.; Vinnacombe-Willson, G.; Liz-Marzán, L. M.; Bals, S. Towards Continuous Time-Dependent Tomography: Implementation and Evaluation of Continuous Acquisition Schemes in Electron Tomography. *Ultramicroscopy* **2025**, 277, 114207. https://doi.org/10.1016/j.ultramic.2025.114207
+
+---
 DIP-STER draws inspiration from many great works including but not limited to:
 
-[Time Dependent Deep Image Priors](https://github.com/jaejun-yoo/TDDIP)\
-[Tomosipo](https://github.com/cicwi/tomosipo) and its [algorithms](https://github.com/ahendriksen/ts_algorithms)
+- [Time Dependent Deep Image Priors](https://github.com/jaejun-yoo/TDDIP)
+- [Tomosipo](https://github.com/cicwi/tomosipo) and its [algorithms](https://github.com/ahendriksen/ts_algorithms)
 
 Thank you!
+
+---
+Interested in dynamic ET and implicit neural representation? See also from the community:
+>Lim, C.; Casert, C.; McCray, A. R. C.; Lee, S.; Barnum, A.; Dionne, J.; Ophus, C. Missing Wedge Inpainting and Joint Alignment in Electron Tomography through Implicit Neural Representations. **2025**. Preprint at https://doi.org/10.48550/arXiv.2512.08113
+
+> Chien, T.; Ophus, C.; Waller, L. Space-Time Implicit Neural Representations for Atomic Electron Tomography on Dynamic Samples. In *NeurIPS 2023 Workshop on Deep Learning and Inverse Problems*. **2023**.
+
 
 ## 4. Contributors
 Timothy Craig - tim.craig@uantwerpen.be\
