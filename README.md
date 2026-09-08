@@ -5,7 +5,6 @@ Deep Image Priors for Space Time Environment Reconstruction (DIP-STER) is a neur
     <img src="Images/Star.gif" width="128">
     <img src="Images/Cube.gif" width="128">
     <img src="Images/Slice.gif" width="128">
-    <span style="color:gold; "><b> Au </span> <span style="color:gray"> Ag </span></b>
 </p>
 
 DIP-STER works by using an implicit neural representation of a volume time series that *implicitely* regularizes for smoothness in time and along the **x** and **z** directions (assuming rotation around **y**). Coupled with a GRS-style tilt scheme that involves large tilt steps, these priors promote decoupling changes in the tilt series that originate from tilting from the actual sample dynamics.  
