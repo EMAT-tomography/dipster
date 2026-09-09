@@ -7,7 +7,7 @@
     <img src="Images/Slice.gif" width="128">
 </p>
 
-DIP-STER works by using an implicit neural representation of the volume time series that *implicitely* regularizes for smoothness in time and along the **x** and **z** directions (assuming rotation around **y**). Coupled with a GRS-style tilt scheme that involves large tilt steps, these priors promote decoupling changes in the tilt series that originate from tilting from the actual sample dynamics.  
+DIP-STER works by using an implicit neural representation of the volume time series that *implicitely* regularizes for smoothness in time and along the **x** and **z** directions (assuming rotation around **y**). Coupled with a [GRS-style tilt scheme](https://doi.org/10.1016/j.ultramic.2025.114207) that involves large tilt steps, these priors promote decoupling changes in the tilt series that originate from tilting from the actual sample dynamics.  
 
 <p align="center">
     <img src="Images/Workflow.png" width="500">
@@ -24,12 +24,20 @@ The network takes in a 3-coordinates $(t_i, y_k, \theta_i)$ manifold, encodes it
 To be completed and further tested ...
 
 ```bash
-# 1. CUDA-depended libraries, match CUDA version to your GPU
-conda install -c pytorch -c nvidia -c conda-forge -c astra-toolbox -c aahendriksen \
-    pytorch torchvision pytorch-cuda=12.8 tomosipo astra-toolbox=2.4
+# 1. Create a conda environment with python >= 3.11
+conda create -n dipster python=3.12
+conda activate dipster
 
-# 2. The package and its pip dependencies
-pip install -e dipster-bare
+# 2. Install pytorch, match CUDA version to your GPU compute https://pytorch.org/get-started/locally/, e.g.:
+pip3 install torch torchvision --index-url https://download.pytorch.org/whl/cu130
+
+# 3. Install tomosipo and astra
+pip install astra-toolbox
+pip install git+https://github.com/cicwi/tomosipo.git
+pip install git+https://github.com/ahendriksen/ts_algorithms.git
+
+# 4. The package and its pip dependencies
+pip install git+https://github.com/EMAT-tomography/dipster.git
 ```
 
 ## 2. Usage 
@@ -51,7 +59,6 @@ For functions defining ET-adapted GRS tilt schemes and other options for continu
 
 > Craig, T. M.; Girod, R.; Vinnacombe-Willson, G.; Liz-Marzán, L. M.; Bals, S. Towards Continuous Time-Dependent Tomography: Implementation and Evaluation of Continuous Acquisition Schemes in Electron Tomography. *Ultramicroscopy* **2025**, 277, 114207. https://doi.org/10.1016/j.ultramic.2025.114207
 
----
 DIP-STER draws inspiration from many great works including but not limited to:
 
 - [Time Dependent Deep Image Priors](https://github.com/jaejun-yoo/TDDIP)
@@ -59,7 +66,7 @@ DIP-STER draws inspiration from many great works including but not limited to:
 
 Thank you!
 
----
+
 Interested in dynamic ET and implicit neural representation? See also from the community:
 >Lim, C.; Casert, C.; McCray, A. R. C.; Lee, S.; Barnum, A.; Dionne, J.; Ophus, C. Missing Wedge Inpainting and Joint Alignment in Electron Tomography through Implicit Neural Representations. **2025**. Preprint at https://doi.org/10.48550/arXiv.2512.08113
 
