@@ -173,7 +173,7 @@ class Solver():
                 n_train_batch = n_train
                 print('\n- - - - - - - - - - - - - - - - - - - - - - - - - - ',
                       '- - - - - - - - - - - - \n',
-                      f'Epoch #{self.step: 3d} - Affine correction enabled '
+                      f'Epoch #{epoch_idx: 3d} - Affine correction enabled '
                       f'({self.params.frames} frames, ',
                       f'lr={self.params.affine_lr})\n',
                       '- - - - - - - - - - - - - - - - - - - - - - - - - - - ',
@@ -203,25 +203,35 @@ class Solver():
 
                     data_1d_ref = torch.zeros([self.params.proj_size, self.params.batch_size, 1, self.params.output_nch]).to(self.params.dev)
                     for i in range(self.params.batch_size):
-                        data_1d_ref[:, i, :, :] = ts.data[:, :, i_batched_frames[i], :]
+                        data_1d_ref[:, i, :, :] = ts.data[:, i_batched_depths[i], i_batched_frames[i], :][:, None, :]
                 else:
                     ## Phase 2 - with affine (slow)
-                    i_batched_frames = shuffled_frame_train[batch_idx]
-                    i_batched_depths = self.params.proj_size
+                    i_batched_frames = shuffled_frame_train[batch_idx].detach().clone().repeat(self.params.proj_size)
+                    i_batched_depths = torch.tensor(self.params.proj_size, device=self.params.dev).repeat(self.params.proj_size)
 
-                    data_1d_ref = ts.data[:, :, i_batched_frames, :].clone()
+                    data_1d_ref = ts.data[:, :, shuffled_frame_train[batch_idx], :].clone().unsqueeze(2)
 
                 # Run forward
                 out_set = self.reconstruct_slices(ts.angles[i_batched_frames].squeeze(), i_batched_depths, ts.times[i_batched_frames].squeeze())
                 angles = ts.angles[i_batched_frames].squeeze()
                 self.grad.X = out_set
-                data_1d_rec = self.affine.warp(self.grad(angles), i_batched_frames)
+
+                if not self._affine_active:
+                    ## Phase 1 - no affine (fast)
+                    data_1d_rec = self.grad(angles)
+
+                else:
+                    ## Phase 2 -with affine (slow)
+                    data_1d_rec = self.affine.warp(self.grad(angles), i_batched_frames)
 
                 # Get TV
                 tv_array = torch.permute(out_set, [3, 1, 2, 0])
                 tv = L.total_variation(tv_array)
 
                 # Backpropogate and update weights
+                if self._affine_active:
+                    logging.debug('data_1d_rec: %s', data_1d_rec.size())
+                    logging.debug('data_1d_ref: %s', data_1d_ref.size())
                 total_loss = (self.loss_fn(data_1d_rec, data_1d_ref) / self.params.batch_size +
                               (tv * self.params.noise_regularizer) +
                               (self._affine_active * self.params.affine_regularizer * self.affine.identity_penalty()))  # 0 if not active
@@ -293,7 +303,8 @@ class Solver():
         for i in range(self.params.proj_size):
             val = tomo.fp(self.reconstruct_slices(ts.angles[idx].squeeze(), i, ts.times[idx].squeeze()), ts.angles[idx].squeeze()).squeeze()
             rec[:, i] = util.torch_to_np(val)
-        ref = ts.data[:, :, idx, :][:, :, 0, 0].squeeze()
+        # ref = ts.data[:, :, idx, :][:, :, 0, 0].squeeze()
+        ref = ts.data[:, :, idx, 0]
 
         # Get metrics and log results on projections
         metrics = self.results.update(self.step, rec, ref, title)
@@ -335,7 +346,8 @@ class Solver():
 
             data_1d_ref = torch.zeros([self.params.proj_size, self.params.batch_size, 1, self.params.output_nch]).to(self.params.dev)
             for i in range(self.params.batch_size):
-                data_1d_ref[:, i, :, :] = ts.data[:, :, i_batched_frames[i], :], i_batched_frames[i][:, i_batched_depths[i], 0, :][:, None, :]
+                # data_1d_ref[:, i, :, :] = ts.data[:, :, i_batched_frames[i], :], i_batched_frames[i][:, i_batched_depths[i], 0, :][:, None, :]
+                data_1d_ref[:, i, :, :] = ts.data[:, i_batched_depths[i], i_batched_frames[i], :][:, None, :]
 
             self.grad.X = out_set
             tv_array = torch.permute(out_set, [3, 1, 2, 0])
@@ -355,7 +367,7 @@ class Solver():
 
         fullval_loss = self._int_validation(ts, (len(self.val_indices) * self.params.proj_size + self.params.batch_size - 1) // self.params.batch_size)
 
-        rec = np.zeros((len(self.val_indices), self.params.proj_size, self.params.proj_size))
+        rec = torch.zeros((len(self.val_indices), self.params.proj_size, self.params.proj_size), device=self.params.dev)
         ref = ts.data[:, :, self.val_indices, :].squeeze()
         ref = ref.permute(2, 0, 1).cpu()
 
@@ -364,8 +376,8 @@ class Solver():
         for i, val_i in enumerate(self.val_indices):
             for proj_i in range(self.params.proj_size):
                 val = tomo.fp(self.reconstruct_slices(ts.angles[val_i].squeeze(), proj_i, ts.times[val_i].squeeze()), ts.angles[val_i].squeeze()).squeeze()
-                rec[i, :, proj_i] = util.torch_to_np(val)
-            metrics = self.results.quantify(self.affine.warp(rec[i], i), ref[i])
+                rec[i, :, proj_i] = val
+            metrics = self.results.quantify(util.torch_to_np(self.affine.warp(rec[i], i).squeeze()), ref[i])
             val_ssim += [metrics['SSIM'],]
             val_psnr += [metrics['PSNR'],]
         fullval_ssim = np.mean(np.array(val_ssim))
@@ -374,10 +386,12 @@ class Solver():
         self.results._update_values('fullval', loss=[epoch_idx, fullval_loss], time=[epoch_idx, time.time()-self.results.start],
                                     SSIM=[epoch_idx, fullval_ssim], PSNR=[epoch_idx, fullval_psnr])
 
-        rec[0] = (rec[0] - rec[0].min()) / (rec[0].max() - rec[0].min())
-        ref[0] = (ref[0] - ref[0].min()) / (ref[0].max() - ref[0].min())
+        rec_np = util.torch_to_np(rec)
+        ref_np = util.torch_to_np(ref)
+        rec_np[0] = (rec_np[0] - rec_np[0].min()) / (rec_np[0].max() - rec_np[0].min())
+        ref_np[0] = (ref_np[0] - ref_np[0].min()) / (ref_np[0].max() - ref_np[0].min())
 
-        self.results._update_images('fullval', [ref[0], rec[0]])
+        self.results._update_images('fullval', [ref_np[0], rec_np[0]])
 
         print(f'Epoch #{epoch_idx: 3d} - Loss = {fullval_loss: 10.5g} - SSIM = {fullval_ssim: 10.5g} - PSNR = {fullval_psnr: 8.3g}')
 

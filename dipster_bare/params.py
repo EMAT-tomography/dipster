@@ -45,10 +45,9 @@ class Params():
             # self.max_steps: int = 2000
 
             # Affine forward-model correction (per-frame 2x3 affine; off by default)
-            self.affine_start_step = None       # step to switch the affine on; None => never
+            self.affine_start_epoch = None       # step to switch the affine on; None => never
             self.affine_lr: float = 1e-3        # lr for the affine param group
             self.affine_regularizer: float = 1.0  # weight on identity_penalty()
-            self.affine_frames_per_epoch: int = 1  # #full-frame projections per phase-2 step
 
             # torch.compile the CNN/MLP submodules
             self.compile_net: bool = False
@@ -108,10 +107,9 @@ class Params():
         # _dict['step_size'] = self.step_size
         # _dict['max_steps'] = self.max_steps
 
-        _dict['affine_start_step'] = self.affine_start_step
+        _dict['affine_start_epoch'] = self.affine_start_epoch
         _dict['affine_lr'] = self.affine_lr
         _dict['affine_regularizer'] = self.affine_regularizer
-        _dict['affine_frames_per_epoch'] = self.affine_frames_per_epoch
 
         _dict['compile_net'] = self.compile_net
         _dict['compile_mode'] = self.compile_mode
@@ -174,10 +172,9 @@ class Params():
         # params.max_steps = state_dict['max_steps']
 
         # Affine fields: .get() so checkpoints saved before this feature still load.
-        params.affine_start_step = state_dict.get('affine_start_step', None)
+        params.affine_start_epoch = state_dict.get('affine_start_epoch', None)
         params.affine_lr = state_dict.get('affine_lr', 1e-3)
         params.affine_regularizer = state_dict.get('affine_regularizer', 1.0)
-        params.affine_frames_per_epoch = state_dict.get('affine_frames_per_epoch', 1)
 
         params.compile_net = state_dict.get('compile_net', False)
         params.compile_mode = state_dict.get('compile_mode', 'default')

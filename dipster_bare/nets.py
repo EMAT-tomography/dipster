@@ -6,7 +6,7 @@ from . import util
 
 def get_params(net):
     params = []
-    params += [x for x in net.parameters() ]
+    params += [x for x in net.parameters()]
     return params
 
 
@@ -170,6 +170,10 @@ class AffineCorrection(nn.Module):
     def warp(self, img, frame_idx):
         """Warp ``img`` ([N, C, H, W]) by the affines of ``frame_idx`` ([N])."""
         theta = self.theta[frame_idx]                                    # [N, 2, 3]
+        if theta.ndim == 2:
+            theta = theta[None]
+        if img.ndim == 2:
+            img = img[None, None]
         grid = F.affine_grid(theta, img.shape, align_corners=False)
         return F.grid_sample(img, grid, align_corners=False, padding_mode='zeros')
 
