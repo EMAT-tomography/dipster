@@ -1,34 +1,45 @@
 import numpy as np
 import torch
-import torch.nn as nn
+from torch import nn
 import torch.nn.functional as F
 from . import util
 
 def get_params(net):
     params = []
-    params += [x for x in net.parameters() ]
+    params += [x for x in net.parameters()]
     return params
 
+
 class Manifold():
-    def __init__(self, times, depth, device):
+    def __init__(self, times, depth, manifold_size, device):
         #cast times and depth to float
         self.times = float(times)
         self.depth = float(depth)-1
         self.device = device
 
+        self.manifold_size = manifold_size
 
-    def get_value(self, ang,z,t):
-        x = torch.cos((ang + 90)* torch.pi / 180).to(self.device)
-        y = torch.sin((ang + 90)* torch.pi / 180).to(self.device)
-        if not isinstance(t,torch.Tensor):
+    def get_value(self, ang, z, t):
+        if not isinstance(t, torch.Tensor):
             t = torch.tensor(t).to(self.device)
-        if not isinstance(z,torch.Tensor):
+        if not isinstance(z, torch.Tensor):
             z = torch.tensor(z).to(self.device).to(torch.float32)
         t_norm = t / self.times
         z_norm = z / self.depth
-        #print(x, y, z_norm, t_norm)
-        manifold = torch.stack([x, y, z_norm, t_norm])
-        if len(manifold.shape)<2:
+
+        if self.manifold_size == 2:
+            manifold = torch.stack([z_norm, t_norm])
+
+        elif self.manifold_size == 3:
+            ang_norm = (ang + 180) / 180
+            # print(z.shape, t.shape, ang_norm.shape, z_norm.shape, t_norm.shape)
+            manifold = torch.stack([ang_norm, z_norm, t_norm])
+        else:
+            x = torch.cos((ang + 90) * torch.pi / 180).to(self.device)
+            y = torch.sin((ang + 90) * torch.pi / 180).to(self.device)
+            manifold = torch.stack([x, y, z_norm, t_norm])
+
+        if len(manifold.shape) < 2:
             manifold = manifold[:, None]
         manifold = manifold.permute(1, 0).float().to(self.device)
         return manifold
@@ -62,7 +73,7 @@ class MappingNet(nn.Module):
         # style dim is the latent vector between mapnet and cnn
         # set as style_size^2 so it can be resized for the cnn
         style_dim = opt.style_size**2 * opt.input_nch  # Added input_nch
-        
+
         # size of the FC layers
         hidden_dim = opt.hidden_dim
 
@@ -159,6 +170,10 @@ class AffineCorrection(nn.Module):
     def warp(self, img, frame_idx):
         """Warp ``img`` ([N, C, H, W]) by the affines of ``frame_idx`` ([N])."""
         theta = self.theta[frame_idx]                                    # [N, 2, 3]
+        if theta.ndim == 2:
+            theta = theta[None]
+        if img.ndim == 2:
+            img = img[None, None]
         grid = F.affine_grid(theta, img.shape, align_corners=False)
         return F.grid_sample(img, grid, align_corners=False, padding_mode='zeros')
 
