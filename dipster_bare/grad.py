@@ -48,36 +48,36 @@ class custom_grad_func(torch.autograd.Function):
         #return grad_output
         return grad_output, None, None, None, None, None, None
 
-class single_angle_fp_func(torch.autograd.Function):
-    """Differentiable projection of a whole volume at one angle.
+# class single_angle_fp_func(torch.autograd.Function):
+#     """Differentiable projection of a whole volume at one angle.
 
-    forward:  vol [s, d, s, c]  -> proj [det=s, depth=d, 1, c]   (tomo.fp, 1 angle)
-    backward: proj-grad         -> vol-grad                       (tomo.bp, per-depth)
+#     forward:  vol [s, d, s, c]  -> proj [det=s, depth=d, 1, c]   (tomo.fp, 1 angle)
+#     backward: proj-grad         -> vol-grad                       (tomo.bp, per-depth)
 
-    Unlike custom_grad_func this never builds the [s, d, d] (det x slice x angle)
-    diagonal sinogram: every depth row of the volume is projected once at the frame's
-    single angle, which is exactly the per-slice projection (tomosipo parallel beam
-    projects each depth row independently). Used by the affine phase, where all of a
-    frame's depth-slices share one angle, to avoid the ~proj_size x memory increase.
-    """
+#     Unlike custom_grad_func this never builds the [s, d, d] (det x slice x angle)
+#     diagonal sinogram: every depth row of the volume is projected once at the frame's
+#     single angle, which is exactly the per-slice projection (tomosipo parallel beam
+#     projects each depth row independently). Used by the affine phase, where all of a
+#     frame's depth-slices share one angle, to avoid the ~proj_size x memory increase.
+#     """
 
-    @staticmethod
-    def forward(ctx, vol, angle):
-        ctx.dev = vol.get_device()
-        ctx.angle = angle
-        ctx.depth = vol.shape[1]
-        return tomo.fp(vol, angle.reshape(1))            # single-angle 2-D projection
+#     @staticmethod
+#     def forward(ctx, vol, angle):
+#         ctx.dev = vol.get_device()
+#         ctx.angle = angle
+#         ctx.depth = vol.shape[1]
+#         return tomo.fp(vol, angle.reshape(1))            # single-angle 2-D projection
 
-    @staticmethod
-    def backward(ctx, grad_output):
-        ang = ctx.angle.reshape(1).expand(ctx.depth)     # one (equal) angle per depth row
-        grad_vol = tomo.bp(grad_output.contiguous(), ang, 1)
-        return grad_vol, None
+#     @staticmethod
+#     def backward(ctx, grad_output):
+#         ang = ctx.angle.reshape(1).expand(ctx.depth)     # one (equal) angle per depth row
+#         grad_vol = tomo.bp(grad_output.contiguous(), ang, 1)
+#         return grad_vol, None
 
 
-def single_angle_fp(vol, angle):
-    """Project ``vol`` ([s, d, s, c]) at a single ``angle`` -> ``[det, depth, 1, c]``."""
-    return single_angle_fp_func.apply(vol, angle)
+# def single_angle_fp(vol, angle):
+#     """Project ``vol`` ([s, d, s, c]) at a single ``angle`` -> ``[det, depth, 1, c]``."""
+#     return single_angle_fp_func.apply(vol, angle)
 
 
 class CustomGradient(nn.Module):
