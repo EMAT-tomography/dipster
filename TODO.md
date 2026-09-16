@@ -10,14 +10,14 @@ Prioritized list of changes identified during code review (Sep 2026).
 - **Where:** `tomo.py:55-62`
 - **Issue:** The SIRT branch (one iteration: `rec += C * A.T(R * (sino - A(rec)))`) is used as the autograd backward, but backward should be the pure adjoint `A.T(sino)` (the `iters=0` branch). This makes the gradient of `fp` with respect to the volume mathematically incorrect.
 - **Todo:**
-  - [ ] Make `bp`'s backward path always use `rec_temp = A.T(sino_temp)` (force `iters=0` semantics).
+  - [x] Make `bp`'s backward path always use `rec_temp = A.T(sino_temp)` (force `iters=0` semantics).
   - [ ] Add a numerical gradient-checker test (`torch.autograd.gradcheck` or finite-difference) to validate `fp`/`bp` adjoint.
 
 ### 2. `custom_grad_func.backward` returns 7 gradients for 2 inputs
 - **Where:** `grad.py:49` — `return grad_output, None, None, None, None, None, None`
 - **Issue:** `forward(ctx, input_r, angle)` has 2 user inputs; PyTorch expects exactly 2 gradient outputs. Returning 7 is a latent `RuntimeError` or silent mis-assignment.
 - **Todo:**
-  - [ ] Change to `return grad_output, None`.
+  - [x] Change to `return grad_output, None`.
 
 ### 3. `Manifold` loses `manifold_size` on save/load
 - **Where:** `nets.py:47-57`

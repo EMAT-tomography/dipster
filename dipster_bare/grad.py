@@ -43,10 +43,10 @@ class custom_grad_func(torch.autograd.Function):
             angle = torch.tensor([angle.item()])
 
         yc = grad_output
-        grad_output = tomo.bp(yc, angle, 1)
+        grad_output = tomo.bp(yc, angle)
 
         #return grad_output
-        return grad_output, None, None, None, None, None, None
+        return grad_output, None
 
 # class single_angle_fp_func(torch.autograd.Function):
 #     """Differentiable projection of a whole volume at one angle.
