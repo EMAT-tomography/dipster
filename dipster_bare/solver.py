@@ -60,7 +60,7 @@ class Solver():
         self.params.set_env()
         self.params.log()
 
-        self.grad = grad.CustomGradient(self.params.proj_size, self.params.batch_size, self.params.output_nch)
+        self.grad = grad.ProjectionGradient(self.params.proj_size, self.params.batch_size, self.params.output_nch, self.params.dev)
         self.loss_fn = L.GemanMcclureLoss(reduction="mean")
 
         self.net = nets.Net(self.params).to(self.params.dev)
@@ -214,7 +214,7 @@ class Solver():
                 # Run forward
                 out_set = self.reconstruct_slices(ts.angles[i_batched_frames].squeeze(), i_batched_depths, ts.times[i_batched_frames].squeeze())
                 angles = ts.angles[i_batched_frames].squeeze()
-                self.grad.X = out_set
+                self.grad.rec_vol = out_set
 
                 if not self._affine_active:
                     ## Phase 1 - no affine (fast)
@@ -349,7 +349,7 @@ class Solver():
                 # data_1d_ref[:, i, :, :] = ts.data[:, :, i_batched_frames[i], :], i_batched_frames[i][:, i_batched_depths[i], 0, :][:, None, :]
                 data_1d_ref[:, i, :, :] = ts.data[:, i_batched_depths[i], i_batched_frames[i], :][:, None, :]
 
-            self.grad.X = out_set
+            self.grad.rec_vol = out_set
             tv_array = torch.permute(out_set, [3, 1, 2, 0])
             tv = L.total_variation(tv_array)
             data_1d_rec = self.grad(angles)

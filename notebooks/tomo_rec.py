@@ -13,7 +13,8 @@ def make_projector(P, angles):
 
     project(x): x [P, P, P, 1] ([H, depth, W, 1]) -> sino [det, depth, N].
     Backward is the true adjoint A.T, i.e. the exact least-squares gradient
-    (unlike grad.single_angle_fp, whose backward is a SIRT-preconditioned backprojection).
+    (unlike dipster_bare.grad.ProjectionGradFunc, whose backward is a
+    SIRT-preconditioned backprojection).
     """
     angs = (np.asarray(util.torch_to_np(angles), dtype=float) + 90) * np.pi / 180
     pg = tp.parallel(angles=angs, shape=(P, P), size=(1, 1))

@@ -13,12 +13,6 @@ Prioritized list of changes identified during code review (Sep 2026).
   - [x] Make `bp`'s backward path always use `rec_temp = A.T(sino_temp)` (force `iters=0` semantics).
   - [ ] Add a numerical gradient-checker test (`torch.autograd.gradcheck` or finite-difference) to validate `fp`/`bp` adjoint.
 
-### 2. `custom_grad_func.backward` returns 7 gradients for 2 inputs
-- **Where:** `grad.py:49` — `return grad_output, None, None, None, None, None, None`
-- **Issue:** `forward(ctx, input_r, angle)` has 2 user inputs; PyTorch expects exactly 2 gradient outputs. Returning 7 is a latent `RuntimeError` or silent mis-assignment.
-- **Todo:**
-  - [x] Change to `return grad_output, None`.
-
 ### 3. `Manifold` loses `manifold_size` on save/load
 - **Where:** `nets.py:47-57`
 - **Issue:** `to_dict()` and `load_state_dict()` do not persist `manifold_size`. After `Solver.from_state_dict`, calling `get_value` raises `AttributeError: 'Manifold' object has no attribute 'manifold_size'`.
@@ -31,13 +25,6 @@ Prioritized list of changes identified during code review (Sep 2026).
 - **Issue:** Any `.mat` file load triggers `AttributeError: 'Sinogram' object has no attribute 'from_mat'`.
 - **Todo:**
   - [ ] Implement `from_mat` (using `scipy.io.loadmat`) or remove the `.mat` branch and update the error message.
-
-### 5. Hard-coded device assumption (GPU 0 / CUDA)
-- **Where:** `grad.py:86` (`.cuda()`), `tomo.py:25` (`.to(0)`), `tomo.py:56-57` (`device=0`)
-- **Issue:** CPU-only setups and GPU indices ≠ 0 are broken. Contradicts `params.dev` which allows selection.
-- **Todo:**
-  - [ ] Thread `params.dev` (or equivalent device object) through `CustomGradient`, `tomo.fp`, `tomo.bp`.
-  - [ ] Accept a `device` parameter from the caller rather than hard-coding.
 
 ### 6. `_validation` warps with wrong affine index
 - **Where:** `solver.py:380` — `affine.warp(rec[i], i)`
@@ -75,12 +62,6 @@ Prioritized list of changes identified during code review (Sep 2026).
 - **Todo:**
   - [ ] Move `import mrcfile` inside the `read_mrcfile` function (lazy import).
   - [ ] Add `mrcfile` to `install_requires` in `setup.cfg` (or document as optional).
-
-### 10. Unused `import astra` in `tomo.py`
-- **Where:** `tomo.py:4`
-- **Issue:** `astra` is imported at module top but never used in this file.
-- **Todo:**
-  - [ ] Remove `import astra` from `tomo.py` (if it's not needed elsewhere for tomosipo internals).
 
 ### 11. `tune.py` `style_sizes` parameter is ignored
 - **Where:** `tune.py:84`
@@ -143,12 +124,12 @@ Prioritized list of changes identified during code review (Sep 2026).
   - [ ] Use plain `wandb.log({key: value})` per step.
   - [ ] Build plots/tables only at `publish()` time or once per epoch.
 
-### 19. Python-level double loops in `fp` / `bp` / `custom_grad_func`
-- **Where:** `grad.py:28-31`, `tomo.py:26-29`, `tomo.py:45-65`
-- **Issue:** Per-depth Python loops calling tomosipo operator repeatedly.
+### 19. Per-channel Python loop in `tomo.fp` / `tomo.bp`
+- **Where:** `tomo.py:60-63` (`fp`), `tomo.py:122-136` (`bp`)
+- **Issue:** One tomosipo operator call per channel in a Python loop. (The `grad.py` diagonal extraction is already vectorized via advanced indexing, and the tomosipo channel loop is required by the current operator API.)
 - **Todo:**
-  - [ ] Vectorize the diagonal extraction in `grad.py` using numpy/torch advanced indexing (`np.diagonal` or `torch.diagonal`).
-  - [ ] Batch per-depth tomosipo calls where possible (check tomosipo API for vectorized angles).
+  - [x] Vectorize the diagonal extraction in `grad.py` (done — `torch.arange` indexing).
+  - [ ] Check the tomosipo operator API for a multi-channel / batched call to drop the per-channel loop.
 
 ---
 
@@ -185,8 +166,8 @@ Prioritized list of changes identified during code review (Sep 2026).
 
 | Batch | Items | Rationale |
 |-------|-------|-----------|
-| 1 | P0-1, P0-2, P0-3, P0-6, P0-4, P2-12 | Correctness of the reconstruction and checkpoint saving |
-| 2 | P0-5, P1-9, P1-10 | Remove import failures so `import dipster_bare` works out of the box |
+| 1 | P0-1, P0-3, P0-6, P0-4, P2-12 | Correctness of the reconstruction and checkpoint saving |
+| 2 | P1-9 | Remove the `mrcfile` top-level import so `import dipster_bare` works out of the box |
 | 3 | P1-7, P1-11, P1-8 | Make `tune.py` functional and decide fate of `hyper.py` |
 | 4 | P2-13, P2-14, P2-15, P2-16, P2-17 | Robustness hardening |
 | 5 | P3-18, P3-19 | Performance if runs are long |
